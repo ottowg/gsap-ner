@@ -1,0 +1,27 @@
+project: gsap_ner
+data:
+  path: /data_ssds/disk06/ottowg/data/gsap_huggingface
+  n_folds: 10
+  date: "2023-06-21"
+  unit: Paragraph
+  tagset: flat_plus # flat_plus
+model:
+  nickname: vanila
+  base_model: allenai/scibert_scivocab_cased
+  path: /data_ssds/disk06/ottowg/model/gsap/
+  training_arguments:
+    evaluation_strategy: epoch
+    save_strategy: epoch
+    load_best_model_at_end: true
+    metric_for_best_model: eval_f1
+    save_total_limit: 1
+    learning_rate: 0.00001
+    warmup_ratio: 0.1
+    num_train_epochs: 20
+    per_device_train_batch_size: 8
+    per_device_eval_batch_size: 2
+    lr_scheduler_type: cosine
+    gradient_accumulation_steps: 8 #  needed for better memory perf
+    weight_decay: 0.01
+    push_to_hub: false
+      # group_by_length 
