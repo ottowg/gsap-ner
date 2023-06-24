@@ -2,16 +2,34 @@ from bisect import bisect_left, bisect_right
 
 import pandas as pd
 
-def precision_recall_fscore_support(gold:list[dict], predictions:list[dict]):
-    """
-    each annotation need to contain: "begin", "end", "id"
-    """
+def calc_scores(gold, prediction):
+    scores = prec_recall(gold, prediction, "precision")\
+                .join(prec_recall(gold, prediction, "recall"))
+    add_f1(scores)
+    return scores
 
-    
-def match_annotations(gold:list[dict], predictions:list[dict]):
-    """
-    each annotation (gold and prediction) need to contain: "begin", "end", "id"
-    """
+def prec_recall(gold, prediction, score_name):
+    if score_name == "recall":
+        prediction, gold = gold, prediction
+    elif score_name != "precision":
+        raise Exception("no valid score")
+    scores_interim = remap_annos_best_match_many_documents(gold,
+                                                prediction)
+    scores_interim = pd.DataFrame(scores_interim)
+    label_p = scores_interim.label.value_counts()
+    p = label_p.sum()
+    scores_interim["partial_tp"] = scores_interim.label == scores_interim.label_mapped
+    scores_interim["exact_tp"] = (scores_interim.label == scores_interim.label_mapped)\
+                                 & (scores_interim.match_type == "exact_match")
+    partial_score = (scores_interim.groupby("label").partial_tp.sum() /\
+                     label_p).rename(f"partial_{score_name}")
+    partial_score.loc["all"] = scores_interim.partial_tp.sum() / p
+    exact_score = (scores_interim.groupby("label").exact_tp.sum() / label_p)\
+                        .rename(f"exact_{score_name}")
+    exact_score.loc["all"] = scores_interim.exact_tp.sum() / p
+    score = partial_score.to_frame().join(exact_score)
+    return score
+
 
 def remap_annos_best_match_df(doc_annos, exact=False):
     gold = doc_annos.gold
@@ -47,7 +65,6 @@ def get_document_dict(gold, pred):
     for p in pred:
         by_ident[p["doc_id"]]["prediction"].append(p)
     return by_ident
-    
     
     
 def remap_annos_best_match(gold, pred, exact=False):
@@ -119,31 +136,6 @@ def get_overlapping(anno, annos_begin, annos_end):
     matches = {a["index"] for a in annos_end[anno_idx_end_max:]} &\
               {a["index"] for a in annos_begin[:anno_idx_begin_min]}
     return matches
-
-def calc_scores(gold, prediction):
-    scores = prec_recall(gold, prediction, "precision")\
-                .join(prec_recall(gold, prediction, "recall"))
-    add_f1(scores)
-    return scores
-
-def prec_recall(gold, prediction, score_name):
-    if score_name == "recall":
-        prediction, gold = gold, prediction
-    elif score_name != "precision":
-        raise Exception("no valid score")
-    hih = remap_annos_best_match_many_documents(gold,
-                                                prediction)
-    hih = pd.DataFrame(hih)
-    label_p = hih.label.value_counts()
-    p = label_p.sum()
-    hih["partial_tp"] = hih.label == hih.label_mapped
-    hih["exact_tp"] = (hih.label == hih.label_mapped) & (hih.match_type == "exact_match")
-    partial_score = (hih.groupby("label").partial_tp.sum() / label_p).rename(f"partial_{score_name}")
-    partial_score.loc["all"] = hih.partial_tp.sum() / p
-    exact_score = (hih.groupby("label").exact_tp.sum() / label_p).rename(f"exact_{score_name}")
-    exact_score.loc["all"] = hih.exact_tp.sum() / p
-    score = partial_score.to_frame().join(exact_score)
-    return score
 
 def add_f1(scores):
     for t in ["partial", "exact"]:
