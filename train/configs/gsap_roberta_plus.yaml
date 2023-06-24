@@ -1,6 +1,6 @@
 project: gsap_ner
 data:
-  path: /data_ssds/disk06/ottowg/data/gsap_huggingface
+  path: /working_dir/data/gsap_huggingface
   n_folds: 10
   date: "2023-06-21"
   unit: Paragraph
@@ -8,7 +8,7 @@ data:
 model:
   nickname: vanila
   base_model: roberta-large
-  path: /data_ssds/disk04/ottowg/model/gsap/
+  path: /working_dir/model/gsap/
   training_arguments:
     evaluation_strategy: epoch
     save_strategy: epoch
