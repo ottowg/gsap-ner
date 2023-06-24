@@ -1,0 +1,102 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "text": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "stacked_start": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "stacked_end": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "stacked_label": {
+      "feature": {
+        "names": [
+          "MLModel",
+          "ModelArchitecture",
+          "Datasource",
+          "Dataset",
+          "Task",
+          "Method",
+          "URL",
+          "ReferenceLink",
+          "MLModelGeneric",
+          "DatasetGeneric"
+        ],
+        "_type": "ClassLabel"
+      },
+      "_type": "Sequence"
+    },
+    "flat_base_start": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "flat_base_end": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "flat_base_label": {
+      "feature": {
+        "names": [
+          "MLModel",
+          "ModelArchitecture",
+          "Dataset",
+          "Datasource",
+          "Task",
+          "Method",
+          "URL",
+          "ReferenceLink"
+        ],
+        "_type": "ClassLabel"
+      },
+      "_type": "Sequence"
+    },
+    "flat_plus_start": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "flat_plus_end": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "flat_plus_label": {
+      "feature": {
+        "names": [
+          "MLModelGeneric",
+          "DatasetGeneric"
+        ],
+        "_type": "ClassLabel"
+      },
+      "_type": "Sequence"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}
