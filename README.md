@@ -1,12 +1,7 @@
 # Project page of GSAP-NER
-## Dataset
-### Formats
-## Code
-### Training
-Finetuning pretrained language models (PLM) on the task of NER for scholarly enitity and concept mentions.
-
-### Inference
-
-### Preprocessing
-
-### Experiments
+Find:
+ * dataset (incl. predictions of our compared models)
+ * training scripts and configs
+ * inference scripts and configs
+ * evaluation notebooks
+ * our annotation guidelines
