@@ -1,12 +1,12 @@
 # GSAP-NER Data and code
 
+### [link to project website](https://data.gesis.org/gsap/gsap-ner)
+
 Find:
  * dataset (incl. predictions of our compared models)
  * training scripts and configs
  * inference scripts and configs
  * evaluation notebooks
- * our annotation guidelines
-
 
 ## Install
 
