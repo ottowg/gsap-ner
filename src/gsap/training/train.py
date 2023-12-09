@@ -4,6 +4,7 @@ import os
 import re
 import logging
 from functools import partial
+import pkg_resources
 
 from datasets import load_dataset, load_from_disk
 from transformers import  DataCollatorForTokenClassification,\
@@ -13,28 +14,28 @@ from transformers import  DataCollatorForTokenClassification,\
                           AutoTokenizer
 import yaml
 
-from prepare_dataset import prepare_dataset
-from metrics import compute_metrics
-
+from .prepare_dataset import prepare_dataset
+from .metrics import compute_metrics
     
 
 def train_from_config(config):
     c = config
     n_folds = c["data"]["n_folds"]
+    path_base_data = get_dataset_path(c)
+    path_base_model = get_model_path(c)
+    print(path_base_data)
+    print(path_base_model)
     for fold in range(0, n_folds):
-        print(f"Started with fold {fold}")
-        # load data
-        c_data = c["data"]
-        dataset_path = Path(c["data"]["path"]) /\
-                       Path(c["data"]["date"]) /\
-                       Path(c["data"]["unit"]) /\
-                       Path(str(fold))
-        dataset_raw = load_from_disk(dataset_path)
+        print(f"Start with fold {fold}")
+        
+        logging.info("load data")
+        path_fold = path_base_data / Path(str(fold))
+        dataset_raw = load_from_disk(path_fold)
         dataset_tokenized, label_names = prepare_dataset(dataset_raw,
                                                          c["model"]["base_model"],
                                                          c["data"]["tagset"])
         print(label_names)
-        #raise Exception("WTF") 
+        
         # load model
         id2label = {i: label for i, label in enumerate(label_names)}
         label2id = {v: k for k, v in id2label.items()}
@@ -47,19 +48,14 @@ def train_from_config(config):
         # prepare collator for padding batches
         tokenizer = AutoTokenizer.from_pretrained(c["model"]["base_model"])
         data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
-        # train the model
-        model_name = f'{Path(c["model"]["base_model"]).name}-{c["data"]["tagset"]}-'
-        model_name += c["model"].get("nickname", "")
-        model_path = Path(c["model"]["path"]) /\
-                     Path(c["data"]["date"]) /\
-                     Path(c["data"]["unit"]) /\
-                     Path(model_name) /\
-                     Path(str(fold))
+        logging.info(f"training instances: {dataset_tokenized['train']}") 
+        logging.info("train the model")
+        path_model_fold = path_base_model / Path(str(fold))
         #freeze_layer(model, up_to=5)
         trainer = Trainer(
             model=model,
             args=TrainingArguments(
-                model_path,
+                path_model_fold,
                 **c["model"]["training_arguments"]
             ),
             train_dataset=dataset_tokenized["train"],
@@ -70,6 +66,26 @@ def train_from_config(config):
         )
         trainer.train()
 
+def get_dataset_path(c):
+    path_base = Path(c["data"]["path"])
+    if not path_base.is_absolute():
+        path_base = Path(os.getcwd()) / path_base
+    if "date" in c:
+        path_base /= Path(c["date"])
+    path_base /= Path(c["data"]["unit"])
+    return path_base
+
+def get_model_path(c):
+    path_base = Path(c["model"].get("path"))
+    if not path_base.is_absolute():
+        path_base = Path(os.getcwd()) / path_base
+    model_name = f'{Path(c["model"]["base_model"]).name}-{c["data"]["tagset"]}-'
+    model_name += c["model"].get("nickname", "")
+    model_path = Path(path_base) /\
+                 Path(c["data"]["unit"]) /\
+                 Path(model_name)
+    return model_path
+
 def freeze_layer(model, up_to):
     for weight_id, param in model.named_parameters():
         if weight_id.startswith("bert.embedding"):
@@ -78,45 +94,17 @@ def freeze_layer(model, up_to):
         layer_num = layer_num[0] if layer_num else None
         if layer_num and int(layer_num) <= up_to:
             param.requires_grad = False
-    
-        
-if __name__ == "__main__":
-    #logging.basicConfig()
+
+def main():
     logging.getLogger().setLevel(logging.INFO)
     fn_config = sys.argv[1]
-    device = sys.argv[2]
-    os.environ["CUDA_VISIBLE_DEVICES"] = device # e.g. "0,1,2"
+    if len(sys.argv) >= 3:
+        device = sys.argv[2]
+        os.environ["CUDA_VISIBLE_DEVICES"] = device # e.g. "0,1,2"
     with open(fn_config) as f:
         config = yaml.safe_load(f)
         train_from_config(config)
 
-# Example config in yaml
-example_config = """
-    project: gsap_ner
-    data:
-      path: /home/ottowg/projects/dataset_extraction/ner_huggingface/gsap
-      n_folds: 10
-      date: 2023-05-24
-      unit: Paragraph
-      tagset: flat_base # flat_plus
-    model:
-      nickname: vanila,
-      base_model: allenai/scibert_scivocab_cased
-      path: /data_ssds/disk07/ottowg/model/gsap/
-      training_arguments:
-        evaluation_strategy: epoch
-        save_strategy: epoch
-        load_best_model_at_end: true
-        metric_for_best_model: eval_f1
-        save_total_limit: 1
-        learning_rate: 0.00001
-        warmup_ratio: 0.1
-        num_train_epochs: 20
-        per_device_train_batch_size: 2,
-        per_device_eval_batch_size: 2
-        lr_scheduler_type: cosine
-        gradient_accumulation_steps: 32 #  needed for better memory perf
-        weight_decay: 0.01
-        push_to_hub: false
-        # group_by_length
-"""
+        
+if __name__ == "__main__":
+    main()
