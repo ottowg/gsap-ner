@@ -2,7 +2,7 @@
 
 ### [link to project website](https://data.gesis.org/gsap/gsap-ner)
 
-Find:
+Find here:
  * dataset (incl. predictions of our compared models)
  * training scripts and configs
  * inference scripts and configs
