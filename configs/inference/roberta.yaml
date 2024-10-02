@@ -1,0 +1,38 @@
+version: 0.0.1
+
+date: 2023-06-21
+
+ten_fold: true
+
+input:
+  path: /working_dir/data/scholarly/structured-data/inception_gsap/json
+  path_fold_filelist: /working_dir/data/scholarly/2023-06-21-gsap-ner-Paragraph-10-fold_filenames.json
+  path_doc_meta: null
+  onefile: false
+  meta_id: null
+  format: gsap-json
+  unit: Paragraph
+  limit: null
+
+output:
+  path: /working_dir/data/scholarly/structured-data/inception_gsap/prediction_10fold_roberta
+  return_units: false
+  onefile: false
+
+
+models:
+  path_model_base: /working_dir/model/gsap
+  batch_size: 100
+  steps:
+    - name: roberta-large-flat_base-vanila
+      model_type: token_classification
+      tokenizer: roberta-large
+      tagset: gsap-base
+      unit: Paragraph
+      fold: 0
+    - name: roberta-large-flat_plus-vanila
+      model_type: token_classification
+      tokenizer: roberta-large
+      tagset: gsap-base
+      unit: Paragraph
+      fold: 0
