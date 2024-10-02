@@ -16,6 +16,7 @@ It is based on an inception export from 2023-06-21.
  * And load the dataset: `load_from_disk("Paragraph/<fold_idx>") (fold_idx: 0-9)
  
 ### Overview over features of the paragraphs stored in the dataset
+```
 "features": {
     "id": {
       "dtype": "string",
@@ -111,4 +112,5 @@ It is based on an inception export from 2023-06-21.
       },
       "_type": "Sequence"
     }
-  },
+  }
+```
